@@ -5,9 +5,14 @@ Bronze/Reference tables already loaded into Snowflake (`BOOKING_DQ`
 database), giving full source → silver → gold lineage and running all 32
 data-quality rules (41 test nodes) live against Snowflake.
 
-Bronze itself is **not** built by this project — it's a physical landing
-layer already in `BOOKING_DQ.BRONZE` (see [`models/_sources.yml`](models/_sources.yml)).
-This project picks up from there.
+The physical Bronze *data* is landed directly into `BOOKING_DQ.BRONZE`
+(declared as a source in [`models/_sources.yml`](models/_sources.yml)), not
+built by this project. `models/bronze/*.sql` are thin typed pass-through
+views over those sources, materialized into a separate `BOOKING_DQ.BRONZE_TYPED`
+schema — not `BOOKING_DQ.BRONZE` itself, since a same-named/same-schema
+view would collide with the physical landing table it reads from and dbt
+would drop it on a table→view relation swap. Silver models `ref()` these
+bronze models normally.
 
 ## Setting up in dbt Cloud
 
@@ -26,10 +31,11 @@ This project picks up from there.
    - Password: (ask for it — not stored here)
    - Schema: your dev schema, e.g. `GOLD` (dbt Cloud requires a default
      dev schema even though every model here sets its own `+schema`)
-4. Run `dbt run` then `dbt test` in the IDE or a deploy job. Expect 19/19
-   models to build and 41 test nodes to finish **35 failed / 3 warned / 3
-   passed** — those "failures" are the seeded DQ violations this project
-   is built to catch, not a broken build.
+4. Run `dbt run` then `dbt test` in the IDE or a deploy job. Expect 26/26
+   models to build (7 bronze views + 19 silver/gold tables) and 41 test
+   nodes to finish **35 failed / 3 warned / 3 passed** — those "failures"
+   are the seeded DQ violations this project is built to catch, not a
+   broken build.
 5. `dbt docs generate` (dbt Cloud does this automatically on job runs, or
    on demand in the IDE) for the full source → silver → gold lineage graph.
 
@@ -38,7 +44,10 @@ This project picks up from there.
 - `models/_sources.yml` — the `bronze` source (physical tables in
   `BOOKING_DQ.BRONZE`) and `reference` source (`ref_valid_psp`,
   `ref_deprecated_currency` in `BOOKING_DQ.REFERENCE`).
-- `models/silver/*.sql` — standardizes and conforms the Bronze sources.
+- `models/bronze/*.sql` — typed pass-through views over the bronze
+  sources, materialized to `BOOKING_DQ.BRONZE_TYPED` (see above for why
+  not `BOOKING_DQ.BRONZE`).
+- `models/silver/*.sql` — standardizes and conforms the bronze models.
   Includes SILVER-BUG-1 (`silver_charge.sql`), a deliberate dedup defect.
 - `models/gold/*.sql` — facts, the 7 `gold_dq_*` rule-check models, and
   `dq_scorecard` (one row per rule with a live violation count). Includes
