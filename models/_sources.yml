@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: BOOKING_DQ
+    schema: BRONZE
+    description: "Bronze landing tables already loaded into Snowflake (Flow 1 direct + Flow 2 via SAP HANA replication). This project's dbt models pick up lineage from here, not from raw files."
+    tables:
+      - name: bronze_charge
+      - name: bronze_daily_captured
+      - name: bronze_gustav_acq
+      - name: bronze_payreport_volume_counts
+      - name: bronze_psp_dispute
+      - name: bronze_psp_volume_counts
+      - name: bronze_settlement
+
+  - name: reference
+    database: BOOKING_DQ
+    schema: REFERENCE
+    description: "Reference/domain tables (RFOpedia-approved PSP list, deprecated currencies)."
+    tables:
+      - name: ref_valid_psp
+      - name: ref_deprecated_currency

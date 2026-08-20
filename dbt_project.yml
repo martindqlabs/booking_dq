@@ -1,0 +1,30 @@
+name: 'booking_payments_dq_snowflake'
+version: '1.0.0'
+config-version: 2
+
+profile: 'booking_payments_dq_snowflake'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+clean-targets: ["target", "dbt_packages"]
+
+# Same rule thresholds as dbt_demo (see ../dbt_demo/dbt_project.yml) so the
+# two projects stay behaviorally identical -- only the source/target backend
+# differs.
+vars:
+  deprecated_currencies: ['BGN']
+  bgn_deprecation_cutoff: '2026-01-01'
+  settlement_sla_days: 10
+  dc_sla_days: 5
+  braintree_fast_track_days: 1
+  volume_anomaly_pct_threshold: 0.30
+
+models:
+  booking_payments_dq_snowflake:
+    silver:
+      +materialized: table
+      +schema: silver
+    gold:
+      +materialized: table
+      +schema: gold

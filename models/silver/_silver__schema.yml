@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: stg_charge
+    description: "Silver staging for Flow 1 charge events — standardized, NOT yet deduplicated. Row-level DQ tests run here so SILVER-BUG-1's dedup can't mask them."
+    columns:
+      - name: userChargeId
+        description: "R17 — must be present on every charge event."
+        tests:
+          - not_null
+      - name: processingEntity
+        description: "R11 (must not be null) and R12 (must be in the approved domain, shared across charge/daily_captured/settlement)."
+        tests:
+          - not_null:
+              config:
+                severity: warn   # R11 is a monitoring signal (Parking Report), not a hard reject
+          - accepted_values:
+              values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
+              config:
+                where: "processingEntity is not null"
+      - name: status
+        description: "R13 — charge status must be in the ADM-filtered domain."
+        tests:
+          - accepted_values:
+              values: ['AUTHORISED', 'CAPTURED', 'CAPTUREDECLINED', 'CANCELED', 'REFUNDED', 'REFUNDFAILED']
+      - name: psp
+        description: "R16 (not null) and R24 (must be an RFOpedia-approved PSP)."
+        tests:
+          - not_null
+          - relationships:
+              to: source('reference', 'ref_valid_psp')
+              field: psp
+      - name: merchantAccount
+        description: "R16 — must not be null/empty."
+        tests:
+          - not_null
+
+  - name: silver_charge
+    description: "Silver (final): one row per (userChargeId, status). See SILVER-BUG-1 in this model's SQL for a known dedup defect."
+    columns:
+      - name: userChargeId
+        tests:
+          - not_null
+
+  - name: silver_daily_captured
+    description: "Silver for Flow 2 DailyCaptured / RegReport feed."
+    columns:
+      - name: type
+        description: "R14 — DC type must be in the RegReport Processor enum."
+        tests:
+          - accepted_values:
+              values: ['Captured', 'CaptureDeclined', 'Authorised', 'Refunded', 'RefundFailed', 'Settled', 'Chargeback']
+      - name: processingEntity
+        tests:
+          - accepted_values:
+              values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
+              config:
+                where: "processingEntity is not null"
+      - name: psp
+        tests:
+          - not_null
+          - relationships:
+              to: source('reference', 'ref_valid_psp')
+              field: psp
+      - name: merchantAccount
+        tests:
+          - not_null
+
+  - name: silver_settlement
+    description: "Silver for Flow 2 Settlement feed."
+    columns:
+      - name: type
+        description: "R15 — settlement type must be in the settlement schema domain."
+        tests:
+          - accepted_values:
+              values: ['Settled', 'Chargeback', 'SecondChargeback', 'RefundSettled', 'Reserve', 'Fee', 'DepositCorrection']
+      - name: processingEntity
+        tests:
+          - accepted_values:
+              values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
+              config:
+                where: "processingEntity is not null"
+      - name: psp
+        tests:
+          - relationships:
+              to: source('reference', 'ref_valid_psp')
+              field: psp
+      - name: merchantAccount
+        tests:
+          - not_null

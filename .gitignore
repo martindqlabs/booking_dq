@@ -1,0 +1,9 @@
+target/
+dbt_packages/
+logs/
+.user.yml
+
+# Local CLI use only — dbt Cloud doesn't read this file; connections are
+# configured in the dbt Cloud UI instead. Kept on disk for local `dbt-core`
+# runs but not needed in the repo dbt Cloud pulls from.
+profiles.yml
