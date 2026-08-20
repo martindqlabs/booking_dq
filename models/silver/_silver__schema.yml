@@ -15,21 +15,24 @@ models:
               config:
                 severity: warn   # R11 is a monitoring signal (Parking Report), not a hard reject
           - accepted_values:
-              values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
+              arguments:
+                values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
               config:
                 where: "processingEntity is not null"
       - name: status
         description: "R13 — charge status must be in the ADM-filtered domain."
         tests:
           - accepted_values:
-              values: ['AUTHORISED', 'CAPTURED', 'CAPTUREDECLINED', 'CANCELED', 'REFUNDED', 'REFUNDFAILED']
+              arguments:
+                values: ['AUTHORISED', 'CAPTURED', 'CAPTUREDECLINED', 'CANCELED', 'REFUNDED', 'REFUNDFAILED']
       - name: psp
         description: "R16 (not null) and R24 (must be an RFOpedia-approved PSP)."
         tests:
           - not_null
           - relationships:
-              to: source('reference', 'ref_valid_psp')
-              field: psp
+              arguments:
+                to: source('reference', 'ref_valid_psp')
+                field: psp
       - name: merchantAccount
         description: "R16 — must not be null/empty."
         tests:
@@ -49,19 +52,22 @@ models:
         description: "R14 — DC type must be in the RegReport Processor enum."
         tests:
           - accepted_values:
-              values: ['Captured', 'CaptureDeclined', 'Authorised', 'Refunded', 'RefundFailed', 'Settled', 'Chargeback']
+              arguments:
+                values: ['Captured', 'CaptureDeclined', 'Authorised', 'Refunded', 'RefundFailed', 'Settled', 'Chargeback']
       - name: processingEntity
         tests:
           - accepted_values:
-              values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
+              arguments:
+                values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
               config:
                 where: "processingEntity is not null"
       - name: psp
         tests:
           - not_null
           - relationships:
-              to: source('reference', 'ref_valid_psp')
-              field: psp
+              arguments:
+                to: source('reference', 'ref_valid_psp')
+                field: psp
       - name: merchantAccount
         tests:
           - not_null
@@ -73,18 +79,21 @@ models:
         description: "R15 — settlement type must be in the settlement schema domain."
         tests:
           - accepted_values:
-              values: ['Settled', 'Chargeback', 'SecondChargeback', 'RefundSettled', 'Reserve', 'Fee', 'DepositCorrection']
+              arguments:
+                values: ['Settled', 'Chargeback', 'SecondChargeback', 'RefundSettled', 'Reserve', 'Fee', 'DepositCorrection']
       - name: processingEntity
         tests:
           - accepted_values:
-              values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
+              arguments:
+                values: ['1000', '1001', '1100', 'NOT_AVAILABLE', 'INCONSISTENT', 'BIZENT_NOT_AVAILABLE']
               config:
                 where: "processingEntity is not null"
       - name: psp
         tests:
           - relationships:
-              to: source('reference', 'ref_valid_psp')
-              field: psp
+              arguments:
+                to: source('reference', 'ref_valid_psp')
+                field: psp
       - name: merchantAccount
         tests:
           - not_null
