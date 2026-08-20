@@ -7,3 +7,4 @@ logs/
 # configured in the dbt Cloud UI instead. Kept on disk for local `dbt-core`
 # runs but not needed in the repo dbt Cloud pulls from.
 profiles.yml
+dbt_internal_packages/
