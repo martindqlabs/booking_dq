@@ -35,3 +35,15 @@ models:
     gold:
       +materialized: table
       +schema: gold
+    customer_pipeline:
+      # Separate pipeline/domain (customer/orders/transactions), own database --
+      # loaded via its own Airflow DAG, not part of this project's bronze/silver/
+      # gold lineage. +database override keeps it out of BOOKING_DQ regardless
+      # of this profile's default target database.
+      +database: CUSTOMER_PIPELINE
+      staging:
+        +materialized: view
+        +schema: silver
+      gold:
+        +materialized: table
+        +schema: gold

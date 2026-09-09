@@ -1,0 +1,19 @@
+select
+    order_id,
+    customer_id,
+    order_date,
+    status,
+    order_amount,
+    quantity,
+    discount_applied,
+    shipping_address,
+    shipping_city,
+    shipping_state,
+    shipping_country,
+    shipping_postal_code,
+    is_shipping_address_valid,
+    createddate,
+    updateddate,
+    _run_date,
+    _silver_loaded_at
+from {{ source('customer_pipeline_silver', 'orders') }}

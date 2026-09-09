@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: dim_customer
+    description: "Customer pipeline gold: current run's new/updated customers (daily-snapshot demo, not a full historical SCD)."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+  - name: dim_product
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+  - name: fct_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+  - name: fct_transactions
+    columns:
+      - name: transaction_id
+        tests: [not_null, unique]
+  - name: fct_customer_daily_summary
+    columns:
+      - name: customer_id
+        tests: [not_null]
+  - name: dq_summary
+    description: "Rejected-record counts by table/rule/run date, sourced from the SILVER *_REJECTS tables -- powers the customer pipeline's DQ dashboard."

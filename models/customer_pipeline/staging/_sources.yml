@@ -1,0 +1,74 @@
+version: 2
+
+sources:
+  - name: customer_pipeline_silver
+    database: CUSTOMER_PIPELINE
+    schema: SILVER
+    description: "Silver tables for the customer/orders/transactions pipeline (separate database from BOOKING_DQ -- loaded via its own Airflow DAG, not part of this project's bronze/silver/gold lineage)."
+    tables:
+      - name: customers
+        columns:
+          - name: customer_id
+            tests: [not_null, unique]
+          - name: email
+            tests: [not_null]
+          - name: subscription_level
+            tests:
+              - accepted_values:
+                  arguments:
+                    values: ["FREE", "BASIC", "PREMIUM", "ENTERPRISE"]
+      - name: products
+        columns:
+          - name: product_id
+            tests: [not_null, unique]
+      - name: orders
+        columns:
+          - name: order_id
+            tests: [not_null, unique]
+          - name: customer_id
+            tests:
+              - relationships:
+                  arguments:
+                    to: source('customer_pipeline_silver', 'customers')
+                    field: customer_id
+          - name: status
+            tests:
+              - accepted_values:
+                  arguments:
+                    values: ["PLACED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"]
+      - name: order_items
+        columns:
+          - name: order_item_id
+            tests: [not_null, unique]
+          - name: order_id
+            tests:
+              - relationships:
+                  arguments:
+                    to: source('customer_pipeline_silver', 'orders')
+                    field: order_id
+          - name: product_id
+            tests:
+              - relationships:
+                  arguments:
+                    to: source('customer_pipeline_silver', 'products')
+                    field: product_id
+      - name: transactions
+        columns:
+          - name: transaction_id
+            tests: [not_null, unique]
+          - name: order_id
+            tests:
+              - relationships:
+                  arguments:
+                    to: source('customer_pipeline_silver', 'orders')
+                    field: order_id
+          - name: transaction_status
+            tests:
+              - accepted_values:
+                  arguments:
+                    values: ["SUCCESS", "FAILED", "PENDING", "REFUNDED"]
+      - name: customers_rejects
+      - name: products_rejects
+      - name: orders_rejects
+      - name: order_items_rejects
+      - name: transactions_rejects
